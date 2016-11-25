@@ -44,7 +44,7 @@ type Message struct {
 	Payload json.RawMessage `json:"payload,omitempty"`
 }
 
-type QueryResponse struct {
+type Response struct {
 	ID        string    `json:"id"`
 	Timestamp time.Time `json:"timestamp"`
 	SessionID string    `json:"sessionId"`
@@ -73,16 +73,16 @@ type QueryResponse struct {
 	} `json:"status"`
 }
 
-func (r *QueryResponse) String() string {
+func (r *Response) String() string {
 	data, _ := json.MarshalIndent(r, "", " ")
 	return string(data)
 }
 
-func (r *QueryResponse) DialogContext(name string) *Context {
+func (r *Response) DialogContext(name string) *Context {
 	return r.Context(fmt.Sprintf("%s_dialog_context", name))
 }
 
-func (r *QueryResponse) Context(name string) *Context {
+func (r *Response) Context(name string) *Context {
 	for _, ctx := range r.Result.Contexts {
 		if ctx.Name == name {
 			return &ctx
@@ -92,7 +92,7 @@ func (r *QueryResponse) Context(name string) *Context {
 	return nil
 }
 
-func (c *Client) Query(query Query) (*QueryResponse, error) {
+func (c *Client) Query(query Query) (*Response, error) {
 	if query.Lang == "" {
 		query.Lang = "en"
 	}
@@ -115,7 +115,7 @@ func (c *Client) Query(query Query) (*QueryResponse, error) {
 		return nil, err
 	}
 
-	var result QueryResponse
+	var result Response
 	dec := json.NewDecoder(response.Body)
 	if err := dec.Decode(&result); err != nil {
 		return nil, err

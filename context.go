@@ -82,3 +82,28 @@ func (c *Client) SetContext(sessionId, name string, parameters interface{}) erro
 
 	return nil
 }
+
+//DropContext by given name, if name is empty string, drops all contexts associated with the session
+func (c *Client) DropContext(sessionId, name string) error {
+	request, err := http.NewRequest(http.MethodDelete,
+		c.url(ContextsEndpoint, name).param("sessionId", sessionId).String(),
+		nil,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	response, err := c.do(request)
+	defer response.Body.Close()
+
+	if err != nil {
+		return err
+	}
+
+	if err := c.error(response); err != nil {
+		return err
+	}
+
+	return nil
+}
