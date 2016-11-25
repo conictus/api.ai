@@ -22,7 +22,27 @@ type Query struct {
 	Lang      string `json:"lang"`
 }
 
+type Button struct {
+	Text     string `json:"text"`
+	PostBack string `json:"postback"`
+}
+
 type MessageType int
+
+type Message struct {
+	Type   MessageType `json:"type"`
+	Speech string      `json:"speech,omitempty"`
+
+	ImageURL string `json:"imageUrl,omitempty"`
+
+	Title    string   `json:"title,omitempty"`
+	Subtitle string   `json:"subtitle,omitempty"`
+	Buttons  []Button `json:"buttons,omitempty"`
+
+	Replies []string `json:"replies,omitempty"`
+
+	Payload json.RawMessage `json:"payload,omitempty"`
+}
 
 type QueryResponse struct {
 	ID        string    `json:"id"`
@@ -31,7 +51,7 @@ type QueryResponse struct {
 	Result    struct {
 		Source           string          `json:"source"`
 		ResolvedQuery    string          `json:"resolvedQuery"`
-		Action           string          `json:"actin"`
+		Action           string          `json:"action"`
 		ActionIncomplete bool            `json:"actionIncomplete"`
 		Parameters       json.RawMessage `json:"parameters"`
 		Contexts         []Context       `json:"contexts"`
@@ -41,11 +61,8 @@ type QueryResponse struct {
 			IntentName  string `json:"intentName"`
 		} `json:"metadata"`
 		Fulfillment struct {
-			Speech   string `json:"speech"`
-			Messages []struct {
-				Type   int    `json:"type"`
-				Speech string `json:"speech"`
-			} `json:"messages"`
+			Speech   string    `json:"speech"`
+			Messages []Message `json:"messages"`
 		} `json:"fulfillment"`
 		Score float64 `json:"score"`
 	} `json:"result"`
@@ -61,14 +78,18 @@ func (r *QueryResponse) String() string {
 	return string(data)
 }
 
-func (r *QueryResponse) Context(name string) (*Context, error) {
+func (r *QueryResponse) DialogContext(name string) *Context {
+	return r.Context(fmt.Sprintf("%s_dialog_context", name))
+}
+
+func (r *QueryResponse) Context(name string) *Context {
 	for _, ctx := range r.Result.Contexts {
 		if ctx.Name == name {
-			return &ctx, nil
+			return &ctx
 		}
 	}
 
-	return nil, fmt.Errorf("not found")
+	return nil
 }
 
 func (c *Client) Query(query Query) (*QueryResponse, error) {
@@ -82,7 +103,7 @@ func (c *Client) Query(query Query) (*QueryResponse, error) {
 		return nil, err
 	}
 
-	request, err := http.NewRequest(http.MethodPost, c.url(QueryEndpoint), &body)
+	request, err := http.NewRequest(http.MethodPost, c.url(QueryEndpoint).String(), &body)
 
 	response, err := c.do(request)
 	if err != nil {

@@ -16,8 +16,11 @@ func (ctx *Context) LoadTo(params interface{}) error {
 	return json.Unmarshal(ctx.Parameters, &params)
 }
 
-func (c *Client) Context(name string) (*Context, error) {
-	request, err := http.NewRequest(http.MethodGet, c.url(ContextsEndpoint, name), nil)
+func (c *Client) Context(sessionId string, name string) (*Context, error) {
+	request, err := http.NewRequest(http.MethodGet,
+		c.url(ContextsEndpoint, name).param("sessionId", sessionId).String(),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +45,7 @@ func (c *Client) Context(name string) (*Context, error) {
 	return &context, nil
 }
 
-func (c *Client) SetContext(name string, parameters interface{}) error {
+func (c *Client) SetContext(sessionId, name string, parameters interface{}) error {
 	context := struct {
 		Name       string      `json:"name"`
 		Parameters interface{} `json:"parameters"`
@@ -57,7 +60,11 @@ func (c *Client) SetContext(name string, parameters interface{}) error {
 		return err
 	}
 
-	request, err := http.NewRequest(http.MethodPost, c.url(ContextsEndpoint), &body)
+	request, err := http.NewRequest(http.MethodPost,
+		c.url(ContextsEndpoint).param("sessionId", sessionId).String(),
+		&body,
+	)
+
 	if err != nil {
 		return err
 	}

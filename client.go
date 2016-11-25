@@ -15,6 +15,20 @@ const (
 	ContextsEndpoint = "contexts"
 )
 
+var (
+	ErrContextNotFound = fmt.Errorf("not found")
+)
+
+type url string
+
+func (u url) param(name, value string) url {
+	return url(fmt.Sprintf("%s&%s=%s", u, name, value))
+}
+
+func (u url) String() string {
+	return string(u)
+}
+
 type Client struct {
 	version string
 	key     string
@@ -29,9 +43,9 @@ func New(key string) *Client {
 	}
 }
 
-func (c *Client) url(endpoint ...string) string {
+func (c *Client) url(endpoint ...string) url {
 	p := path.Join(endpoint...)
-	return fmt.Sprintf("%s/%s?v=%s", ApiURL, p, ApiVersion)
+	return url(fmt.Sprintf("%s/%s?v=%s", ApiURL, p, ApiVersion))
 }
 
 func (c *Client) do(request *http.Request) (*http.Response, error) {
