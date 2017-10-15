@@ -16,8 +16,14 @@ const (
 	MessageTypeCustomPayload MessageType = 4
 )
 
+type Event struct {
+	Name string `json:"name"`
+	Data map[string]string `json:"data"`
+}
+
 type Query struct {
-	Query     string `json:"query"`
+	Query     string `json:"query,omitempty"`
+	Event 	  *Event `json:"event,omitempty"`
 	SessionID string `json:"sessionId"`
 	Lang      string `json:"lang"`
 }
