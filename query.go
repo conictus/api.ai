@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -17,13 +18,13 @@ const (
 )
 
 type Event struct {
-	Name string `json:"name"`
+	Name string            `json:"name"`
 	Data map[string]string `json:"data"`
 }
 
 type Query struct {
 	Query     string `json:"query,omitempty"`
-	Event 	  *Event `json:"event,omitempty"`
+	Event     *Event `json:"event,omitempty"`
 	SessionID string `json:"sessionId"`
 	Lang      string `json:"lang"`
 }
@@ -36,10 +37,10 @@ type Button struct {
 type MessageType int
 
 type Message struct {
-	Type   MessageType `json:"type"`
-	Speech string      `json:"speech,omitempty"`
-
-	ImageURL string `json:"imageUrl,omitempty"`
+	Type     MessageType `json:"type"`
+	Speech   string      `json:"speech,omitempty"`
+	Platform string      `json:"platform"`
+	ImageURL string      `json:"imageUrl,omitempty"`
 
 	Title    string   `json:"title,omitempty"`
 	Subtitle string   `json:"subtitle,omitempty"`
@@ -77,6 +78,12 @@ type Response struct {
 		ErrorType    string `json:"errorType"`
 		ErrorDetails string `json:"errorDetails"`
 	} `json:"status"`
+}
+
+func (r *Response) ToJson(w io.Writer) error {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(r)
 }
 
 func (r *Response) String() string {
